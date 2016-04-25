@@ -12,6 +12,30 @@
 #
 # Based on work by Todd Werth - todd@toddwerth.com
 #
+
+# init files
+bashmarks_file=~/.bashmarks
+bashmarks_command_file=~/.bashmarks_commands
+
+# Create bashmarks files if they doesn't exist
+if [ ! -f $bashmarks_file ]; then
+    touch $bashmarks_file
+fi
+if [ ! -f $bashmarks_command_file ]; then
+    touch $bashmarks_command_file
+fi
+
+# BashHelp - Display user help
+bh() {
+echo -e "
+##################################################################
+#                            8**8**8                             #
+#   eeeee  eeeee eeeee e   e 8  8  8 eeeee eeeee  e   e  eeeee   #
+#   8   8  8   8 8   * 8   8 8e 8  8 8   8 8   8  8   8  8   *   #
+#   8eee8e 8eee8 8eeee 8eee8 88 8  8 8eee8 8eee8e 8eee8e 8eeee   #
+#   88   8 88  8    88 88  8 88 8  8 88  8 88   8 88   8    88   #
+#   88eee8 88  8 8ee88 88  8 88 8  8 88  8 88   8 88   8 8ee88   #
+#                                                                #
 ##################################################################
 # Install #                                                      #
 ###########                                                      #
@@ -34,7 +58,7 @@
 # bc foo                                                         #
 #                                                                #
 # Make a BashMark for a command (do not use spaces):             #
-# bmc "foo --foo -f foo" foo                                     #
+# bmc \"foo --foo -f foo\" foo                                     #
 #                                                                #
 # Delete a BashMark for a command:                               #
 # bdc foo                                                        #
@@ -53,16 +77,8 @@
 #                                                                #
 ##################################################################
 
-bashmarks_file=~/.bashmarks
-bashmarks_command_file=~/.bashmarks_commands
-
-# Create bashmarks files if they doesn't exist
-if [ ! -f $bashmarks_file ]; then
-    touch $bashmarks_file
-fi
-if [ ! -f $bashmarks_command_file ]; then
-    touch $bashmarks_command_file
-fi
+"
+}
 
 # BashMark - Create the mark
 bm() {
@@ -88,9 +104,10 @@ bm() {
 # BashShow - Show the marks
 bs() {
     echo "BashMarks:"
-    cat $bashmarks_file | awk '{ printf "%-50s%s\n",$1,$2}' FS=\|
+    cat $bashmarks_file | awk '{ printf "\n%s\n%s\n",$1,$2}' FS=\|
+    echo
     echo "BashMarks Commands:"
-    cat $bashmarks_command_file | awk '{ printf "%-50s%s\n",$1,$2}' FS=\|
+    cat $bashmarks_command_file | awk '{ printf "\n%s\n%s\n",$1,$2}' FS=\|
 }
 
 # BashCd - cd into the mark
