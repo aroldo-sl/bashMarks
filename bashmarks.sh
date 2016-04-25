@@ -72,7 +72,7 @@ echo -e "
 ##################################################################
 #                                                                #
 # Tab completion works for using BashMarks                       #
-# It does not work for deletion to proctect your BashMarks.      #
+# It does not work for deletion to protect your BashMarks.       #
 # It defaults to directories and then checks commands            #
 #                                                                #
 ##################################################################
