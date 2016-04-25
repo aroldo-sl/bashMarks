@@ -69,6 +69,12 @@ echo -e "
 # To see a list of bashmarks:                                    #
 # bs                                                             #
 #                                                                #
+# To see a specific of bashmark (useful for ./\`bsm foo\`/bar:     #
+# bsm foo                                                        #
+#                                                                #
+# To see this help ... :                                         #
+# bh                                                             #
+#                                                                #
 ##################################################################
 #                                                                #
 # Tab completion works for using BashMarks                       #
@@ -108,6 +114,29 @@ bs() {
     echo
     echo "BashMarks Commands:"
     cat $bashmarks_command_file | awk '{ printf "\n%s\n%s\n",$1,$2}' FS=\|
+}
+
+# BashShowMark - Show the mark
+bsm() {
+    bashmarks_name=$1
+
+    bashmarks=`grep "|$bashmarks_name$" "$bashmarks_file"`
+
+    if [ -n "$bashmarks" ]; then
+        dir=`echo "$bashmarks" | cut -d\| -f1`
+        echo "$dir"
+    else
+        echo "Can not find directory for: '$bashmarks_name'"
+        echo "Searching commands..."
+        
+        bashmarksCommand=`grep "|$bashmarks_name$" "$bashmarks_command_file"`
+        if [ -n "$bashmarksCommand" ]; then
+            command=`echo "$bashmarksCommand" | cut -d\| -f1`
+            echo "$command"
+        else
+            echo "Invalid name: '$bashmarks_name'"
+        fi
+    fi
 }
 
 # BashCd - cd into the mark
@@ -210,4 +239,4 @@ bdc() {
 _tabComplete(){
     cat $bashmarks_file $bashmarks_command_file | cut -d\| -f2 | grep "$2.*"
 }
-complete -C _tabComplete -o default bc br
+complete -C _tabComplete -o default bc br bsm
