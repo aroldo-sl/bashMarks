@@ -91,7 +91,7 @@ bm() {
     bashmarks_name=$1
 
     if [ -n "$bashmarks_name" ]; then
-        bashmarks="`pwd`|$bashmarks_name" # Store the mark as folder¶name
+        bashmarks="`pwd`¶$bashmarks_name" # Store the mark as folder¶name
         if [ -z `grep "$bashmarks" $bashmarks_file` ]; then
             if [ -z `grep "$bashmarks" $bashmarks_command_file` ]; then
                 echo $bashmarks >> $bashmarks_file
