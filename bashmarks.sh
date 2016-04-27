@@ -225,7 +225,10 @@ bdc() {
                 echo $bashmarks | tr '╩' '\n' | awk 'NF > 0' >> $bashmarks_command_file
                 echo "Bashmark '$bashmarks_name' deleted"
             else
-                echo "Error on: '$bashmarks_name'\nPlease report"
+                # if we only have one command and we're deleting it, grep -v returns nothing
+                # instead just remove the file an touch it clean
+                rm $bashmarks_command_file
+                touch $bashmarks_command_file
             fi
         else
             echo "Can not find: '$bashmarks_name'"
