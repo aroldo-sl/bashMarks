@@ -229,6 +229,7 @@ bdc() {
                 # instead just remove the file an touch it clean
                 rm $bashmarks_command_file
                 touch $bashmarks_command_file
+                echo "Bashmark '$bashmarks_name' deleted"
             fi
         else
             echo "Can not find: '$bashmarks_name'"
