@@ -91,7 +91,7 @@ bm() {
     bashmarks_name=$1
 
     if [ -n "$bashmarks_name" ]; then
-        bashmarks="`pwd`|$bashmarks_name" # Store the mark as folder|name
+        bashmarks="`pwd`|$bashmarks_name" # Store the mark as folder¶name
         if [ -z `grep "$bashmarks" $bashmarks_file` ]; then
             if [ -z `grep "$bashmarks" $bashmarks_command_file` ]; then
                 echo $bashmarks >> $bashmarks_file
@@ -110,28 +110,28 @@ bm() {
 # BashShow - Show the marks
 bs() {
     echo "BashMarks:"
-    cat $bashmarks_file | awk '{ printf "\n%s\n%s\n",$1,$2}' FS=\|
+    cat $bashmarks_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
     echo
     echo "BashMarks Commands:"
-    cat $bashmarks_command_file | awk '{ printf "\n%s\n%s\n",$1,$2}' FS=\|
+    cat $bashmarks_command_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
 }
 
 # BashShowMark - Show the mark
 bsm() {
     bashmarks_name=$1
 
-    bashmarks=`grep "|$bashmarks_name$" "$bashmarks_file"`
+    bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_file"`
 
     if [ -n "$bashmarks" ]; then
-        dir=`echo "$bashmarks" | cut -d\| -f1`
+        dir=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
         echo "$dir"
     else
         echo "Can not find directory for: '$bashmarks_name'"
         echo "Searching commands..."
         
-        bashmarksCommand=`grep "|$bashmarks_name$" "$bashmarks_command_file"`
+        bashmarksCommand=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
         if [ -n "$bashmarksCommand" ]; then
-            command=`echo "$bashmarksCommand" | cut -d\| -f1`
+            command=`echo "$bashmarksCommand" | awk '{printf "%s",$1}' FS=¶`
             echo "$command"
         else
             echo "Invalid name: '$bashmarks_name'"
@@ -143,10 +143,10 @@ bsm() {
 bc() {
     bashmarks_name=$1
 
-    bashmarks=`grep "|$bashmarks_name$" "$bashmarks_file"`
+    bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_file"`
 
     if [ -n "$bashmarks" ]; then
-        dir=`echo "$bashmarks" | cut -d\| -f1`
+        dir=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
         cd "$dir"
     else
         echo "Can not find directory for: '$bashmarks_name'"
@@ -160,7 +160,7 @@ bd() {
     bashmarks_name=$1
     
     if [ -n "$bashmarks_name" ]; then
-        bashmarks=`sed "/|$bashmarks_name$/d" "$bashmarks_file"`
+        bashmarks=`sed "/¶$bashmarks_name$/d" "$bashmarks_file"`
         if [ -n "$bashmarks" ]; then
             rm $bashmarks_file
             echo $bashmarks | tr ' ' '\n' >> $bashmarks_file
@@ -180,7 +180,7 @@ bmc() {
 
     if [ -n "$bashmarks_name" ]; then
         if [ -n "$bashmarks_command" ]; then
-            bashmarks="$bashmarks_command|$bashmarks_name" # Store the mark as command|name
+            bashmarks="$bashmarks_command¶$bashmarks_name" # Store the mark as command¶name
             if [ -z `grep "$bashmarks" $bashmarks_command_file` ]; then
                 if [ -z `grep "$bashmarks" $bashmarks_file` ]; then
                     echo "$bashmarks" >> $bashmarks_command_file
@@ -203,9 +203,9 @@ bmc() {
 br() {
     bashmarks_name=$1
 
-    bashmarks=`grep "|$bashmarks_name$" "$bashmarks_command_file"`
+    bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
     if [ -n "$bashmarks" ]; then
-        command=`echo "$bashmarks" | cut -d\| -f1`
+        command=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
         $command
     else
         echo "Invalid name: '$bashmarks_name'"
@@ -217,12 +217,12 @@ bdc() {
     bashmarks_name=$1
     
     if [ -n "$bashmarks_name" ]; then
-        bashmarks_check=`grep "|$bashmarks_name$" "$bashmarks_command_file"`
+        bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
         if [ -n "$bashmarks_check" ]; then
-            bashmarks=`grep -v "|$bashmarks_name$" "$bashmarks_command_file" | awk '{printf "%s|%s¶",$1,$2}' FS=\|`
+            bashmarks=`grep -v "¶$bashmarks_name$" "$bashmarks_command_file" | awk '{printf "%s¶%s╩",$1,$2}' FS=¶`
             if [ -n "$bashmarks" ]; then
                 rm $bashmarks_command_file
-                echo $bashmarks | tr '¶' '\n' | awk 'NF > 0' >> $bashmarks_command_file
+                echo $bashmarks | tr '╩' '\n' | awk 'NF > 0' >> $bashmarks_command_file
                 echo "Bashmark '$bashmarks_name' deleted"
             else
                 echo "Error on: '$bashmarks_name'\nPlease report"
@@ -237,6 +237,6 @@ bdc() {
 
 # TabComplete - List all marks, grep for match
 _tabComplete(){
-    cat $bashmarks_file $bashmarks_command_file | cut -d\| -f2 | grep "$2.*"
+    cat $bashmarks_file $bashmarks_command_file | awk '{printf "%s\n",$2}' FS=¶ | grep "$2.*"
 }
 complete -C _tabComplete -o default bc br bsm
