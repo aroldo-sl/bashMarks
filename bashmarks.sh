@@ -55,16 +55,13 @@ echo -e "
 # bd foo                                                         #
 #                                                                #
 # cd to a BashMark:                                              #
-# bc foo                                                         #
+# be foo                                                         #
 #                                                                #
 # Make a BashMark for a command (do not use spaces):             #
-# bmc \"foo --foo -f foo\" foo                                     #
-#                                                                #
-# Delete a BashMark for a command:                               #
-# bdc foo                                                        #
+# bm foo \"foo --foo -f foo\"                                      #
 #                                                                #
 # Run a BashMark for a command:                                  #
-# br foo                                                         #
+# be foo                                                         #
 #                                                                #
 # To see a list of bashmarks:                                    #
 # bs                                                             #
@@ -74,6 +71,18 @@ echo -e "
 #                                                                #
 # To see this help ... :                                         #
 # bh                                                             #
+#                                                                #
+##################################################################
+#                                                                #
+# Spaces do not work in the arguments of BashMark Commands       #
+# bm foo \"foo -f /foo/bar\" will execute fine from be foo         #
+# The following will NOT execute fine from be foo                #
+# bm foo \"foo -f \\\"/foo bar\\\"\"                                   #
+# bm foo \"foo -f /foo\\ bar\"                                      #
+# To work around this limitation, make a symlink that does not   #
+# contain spaces, suchas the following                           #
+# ln -s /foo\\ bar/ /foobar/                                      #
+# bm foo \"foo -f /foobar/\"                                       #
 #                                                                #
 ##################################################################
 #                                                                #
@@ -89,18 +98,33 @@ echo -e "
 # BashMark - Create the mark
 bm() {
     bashmarks_name=$1
+    bashmarks_command=$2
 
     if [ -n "$bashmarks_name" ]; then
-        bashmarks="`pwd`¶$bashmarks_name" # Store the mark as folder¶name
-        if [ -z `grep "$bashmarks" $bashmarks_file` ]; then
-            if [ -z `grep "$bashmarks" $bashmarks_command_file` ]; then
-                echo $bashmarks >> $bashmarks_file
-                echo "Bashmark '$bashmarks_name' saved"
+        if [ -n "$bashmarks_command" ]; then
+            bashmarks="$bashmarks_command¶$bashmarks_name" # Store the mark as command¶name
+            if [ -z `grep "¶$bashmarks_name$" $bashmarks_command_file` ]; then
+                if [ -z `grep "¶$bashmarks_name$" $bashmarks_file` ]; then
+                    echo "$bashmarks" >> $bashmarks_command_file
+                    echo "Bashmark '$bashmarks_name' saved"
+                else
+                    echo "Bashmark '$bashmarks_name' already exists as a directory"
+                fi
             else
                 echo "Bashmark '$bashmarks_name' already exists as a command"
             fi
         else
-            echo "Bashmark '$bashmarks_name' already exists as a directory"
+            bashmarks="`pwd`¶$bashmarks_name" # Store the mark as folder¶name
+            if [ -z `grep "¶$bashmarks_name$" $bashmarks_file` ]; then
+                if [ -z `grep "¶$bashmarks_name$" $bashmarks_command_file` ]; then
+                    echo $bashmarks >> $bashmarks_file
+                    echo "Bashmark '$bashmarks_name' saved"
+                else
+                    echo "Bashmark '$bashmarks_name' already exists as a command"
+                fi
+            else
+                echo "Bashmark '$bashmarks_name' already exists as a directory"
+            fi
         fi
     else
         echo "Invalid name: '$bashmarks_name'"
@@ -139,8 +163,8 @@ bsm() {
     fi
 }
 
-# BashCd - cd into the mark
-bc() {
+# BashExecute - cd into the mark, or run the command
+be() {
     bashmarks_name=$1
 
     bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_file"`
@@ -149,9 +173,13 @@ bc() {
         dir=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
         cd "$dir"
     else
-        echo "Can not find directory for: '$bashmarks_name'"
-        echo "Searching commands..."
-        br $1
+        bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
+        if [ -n "$bashmarks" ]; then
+            command=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
+            $command
+        else
+            echo "Invalid name: '$bashmarks_name'"
+        fi
     fi
 }
 
@@ -160,87 +188,48 @@ bd() {
     bashmarks_name=$1
     
     if [ -n "$bashmarks_name" ]; then
-        bashmarks=`sed "/¶$bashmarks_name$/d" "$bashmarks_file"`
-        if [ -n "$bashmarks" ]; then
-            rm $bashmarks_file
-            echo $bashmarks | tr ' ' '\n' >> $bashmarks_file
-            echo "Bashmark '$bashmarks_name' deleted"
-        else
-            echo "Can not find: '$bashmarks_name'"
-        fi
-    else
-        echo "Invalid name: '$bashmarks_name'"
-    fi
-}
-
-# BashMarkCommand - Create the mark
-bmc() {
-    bashmarks_command=$1
-    bashmarks_name=$2
-
-    if [ -n "$bashmarks_name" ]; then
-        if [ -n "$bashmarks_command" ]; then
-            bashmarks="$bashmarks_command¶$bashmarks_name" # Store the mark as command¶name
-            if [ -z `grep "$bashmarks" $bashmarks_command_file` ]; then
-                if [ -z `grep "$bashmarks" $bashmarks_file` ]; then
-                    echo "$bashmarks" >> $bashmarks_command_file
-                    echo "Bashmark '$bashmarks_name' saved"
+        
+        bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_file"`
+        if [ -z "$bashmarks_check" ]; then
+            bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
+            if [ -n "$bashmarks_check" ]; then
+                bashmarks=`grep -v "¶$bashmarks_name$" "$bashmarks_command_file" | awk '{printf "%s¶%s╩",$1,$2}' FS=¶`
+                if [ -n "$bashmarks" ]; then
+                    rm $bashmarks_command_file
+                    echo $bashmarks | tr '╩' '\n' | awk 'NF > 0' >> $bashmarks_command_file
+                    echo "Bashmark '$bashmarks_name' deleted"
                 else
-                    echo "Bashmark '$bashmarks_name' already exists as a directory"
+                    # if we only have one command and we're deleting it, grep -v returns nothing
+                    # instead just remove the file an touch it clean
+                    rm $bashmarks_command_file
+                    touch $bashmarks_command_file
+                    echo "Bashmark '$bashmarks_name' deleted"
                 fi
             else
-                echo "Bashmark '$bashmarks_name' already exists as a command"
+                echo "Can not find: '$bashmarks_name'"
             fi
         else
-            echo "Invalid command: '$bashmarks_command'"
-        fi
-    else
-        echo "Invalid name: '$bashmarks_name'"
-    fi
-}
-
-# BashRun - Run the command for the mark
-br() {
-    bashmarks_name=$1
-
-    bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
-    if [ -n "$bashmarks" ]; then
-        command=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
-        $command
-    else
-        echo "Invalid name: '$bashmarks_name'"
-    fi
-}
-
-# BashDeleteCommand - Delete a BashMark command
-bdc() {
-    bashmarks_name=$1
-    
-    if [ -n "$bashmarks_name" ]; then
-        bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
-        if [ -n "$bashmarks_check" ]; then
-            bashmarks=`grep -v "¶$bashmarks_name$" "$bashmarks_command_file" | awk '{printf "%s¶%s╩",$1,$2}' FS=¶`
+            bashmarks=`grep -v "¶$bashmarks_name$" "$bashmarks_file" | awk '{printf "%s¶%s╩",$1,$2}' FS=¶`
             if [ -n "$bashmarks" ]; then
-                rm $bashmarks_command_file
-                echo $bashmarks | tr '╩' '\n' | awk 'NF > 0' >> $bashmarks_command_file
+                rm $bashmarks_file
+                echo $bashmarks | tr '╩' '\n' | awk 'NF > 0' >> $bashmarks_file
                 echo "Bashmark '$bashmarks_name' deleted"
             else
-                # if we only have one command and we're deleting it, grep -v returns nothing
+                # if we only have one mark and we're deleting it, grep -v returns nothing
                 # instead just remove the file an touch it clean
-                rm $bashmarks_command_file
-                touch $bashmarks_command_file
+                rm $bashmarks_file
+                touch $bashmarks_file
                 echo "Bashmark '$bashmarks_name' deleted"
             fi
-        else
-            echo "Can not find: '$bashmarks_name'"
         fi
     else
         echo "Invalid name: '$bashmarks_name'"
     fi
 }
+
 
 # TabComplete - List all marks, grep for match
 _tabComplete(){
     cat $bashmarks_file $bashmarks_command_file | awk '{printf "%s\n",$2}' FS=¶ | grep "$2.*"
 }
-complete -C _tabComplete -o default bc br bsm
+complete -C _tabComplete -o default be bsm
