@@ -150,9 +150,6 @@ bsm() {
         dir=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
         echo "$dir"
     else
-        echo "Can not find directory for: '$bashmarks_name'"
-        echo "Searching commands..."
-        
         bashmarksCommand=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
         if [ -n "$bashmarksCommand" ]; then
             command=`echo "$bashmarksCommand" | awk '{printf "%s",$1}' FS=¶`
