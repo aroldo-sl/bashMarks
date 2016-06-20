@@ -226,7 +226,7 @@ bd() {
 
 
 # TabComplete - List all marks, grep for match
-_tabComplete(){
+_tabCompleteBashMarks(){
     cat $bashmarks_file $bashmarks_command_file | awk '{printf "%s\n",$2}' FS=¶ | grep "$2.*"
 }
-complete -C _tabComplete -o default be bsm
+complete -C _tabCompleteBashMarks -o default be bsm
