@@ -1,10 +1,10 @@
-#                   ::::::::          
-#         :+:      :+:    :+:         
-#    +++++++++++  +:+         +++++   
-#       +:+      +#+         +#  +#   
-#      +#+      +#+         +#        
-#     #+#      #+#     +#  +#  +#     
-#    ###       ########+   ####+      
+#                   ::::::::
+#         :+:      :+:    :+:
+#    +++++++++++  +:+         +++++
+#       +:+      +#+         +#  +#
+#      +#+      +#+         +#
+#     #+#      #+#     +#  +#  +#
+#    ###       ########+   ####+
 #
 # tCc|MC_Crafty
 # mc_crafty@gmx.com
@@ -102,7 +102,7 @@ bm() {
 
     if [ -n "$bashmarks_name" ]; then
         if [ -n "$bashmarks_command" ]; then
-            bashmarks="$bashmarks_command¶$bashmarks_name" # Store the mark as command¶name
+            bashmarks="$bashmarks_command""¶""$bashmarks_name" # Store the mark as command¶name
             if [ -z `grep "¶$bashmarks_name$" $bashmarks_command_file` ]; then
                 if [ -z `grep "¶$bashmarks_name$" $bashmarks_file` ]; then
                     echo "$bashmarks" >> $bashmarks_command_file
@@ -183,9 +183,9 @@ be() {
 # BashDelete - Delete the mark
 bd() {
     bashmarks_name=$1
-    
+
     if [ -n "$bashmarks_name" ]; then
-        
+
         bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_file"`
         if [ -z "$bashmarks_check" ]; then
             bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
