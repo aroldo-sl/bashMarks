@@ -66,6 +66,12 @@ echo -e "
 # To see a list of bashmarks:                                    #
 # bs                                                             #
 #                                                                #
+# To see a list of bashmarks direcotries:                        #
+# bsd                                                            #
+#                                                                #
+# To see a list of bashmarks commands:                           #
+# bsc                                                            #
+#                                                                #
 # To see a specific of bashmark (useful for ./\`bsm foo\`/bar:     #
 # bsm foo                                                        #
 #                                                                #
@@ -133,9 +139,19 @@ bm() {
 
 # BashShow - Show the marks
 bs() {
+    bsd
+    echo
+    bsc
+}
+
+# BashShowDirectory - Show the directory marks
+bsd() {
     echo "BashMarks:"
     cat $bashmarks_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
-    echo
+}
+
+# BashShowCommand - Show the command marks
+bsc() {
     echo "BashMarks Commands:"
     cat $bashmarks_command_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
 }

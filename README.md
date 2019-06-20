@@ -51,6 +51,12 @@
 # To see a list of bashmarks:                                    #
 # bs                                                             #
 #                                                                #
+# To see a list of bashmarks direcotries:                        #
+# bsd                                                            #
+#                                                                #
+# To see a list of bashmarks commands:                           #
+# bsc                                                            #
+#                                                                #
 # To see a specific of bashmark (useful for ./`bsm foo`/bar:     #
 # bsm foo                                                        #
 #                                                                #
