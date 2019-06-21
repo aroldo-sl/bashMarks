@@ -85,7 +85,6 @@
 ```
 
 ## Still left to do
-+ Merge dir and command files; only 1 bm file
 + Add colors to output of bs and bh
 + Find some way to make commands work with spaces in the args...
 + Other minor fixes

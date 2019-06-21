@@ -15,14 +15,12 @@
 
 # init files
 bashmarks_file=~/.bashmarks
-bashmarks_command_file=~/.bashmarks_commands
+bashmarks_file_tmp=~/.bashmarkstmp
 
 # Create bashmarks files if they doesn't exist
 if [ ! -f $bashmarks_file ]; then
     touch $bashmarks_file
-fi
-if [ ! -f $bashmarks_command_file ]; then
-    touch $bashmarks_command_file
+    echo ╩ > $bashmarks_file
 fi
 
 # BashHelp - Display user help
@@ -109,9 +107,9 @@ bm() {
     if [ -n "$bashmarks_name" ]; then
         if [ -n "$bashmarks_command" ]; then
             bashmarks="$bashmarks_command""¶""$bashmarks_name" # Store the mark as command¶name
-            if [ -z `grep "¶$bashmarks_name$" $bashmarks_command_file` ]; then
-                if [ -z `grep "¶$bashmarks_name$" $bashmarks_file` ]; then
-                    echo "$bashmarks" >> $bashmarks_command_file
+            if [ -z `awk '{if(found) print} /╩/{found=1}' $bashmarks_file | grep "¶$bashmarks_name$"` ]; then
+                if [ -z `awk '/╩/{found=1} {if(!found) print}' $bashmarks_file | grep "¶$bashmarks_name$"` ]; then
+                    echo "$bashmarks" >> $bashmarks_file
                     echo "Bashmark '$bashmarks_name' saved"
                 else
                     echo "Bashmark '$bashmarks_name' already exists as a directory"
@@ -121,9 +119,9 @@ bm() {
             fi
         else
             bashmarks="`pwd`¶$bashmarks_name" # Store the mark as folder¶name
-            if [ -z `grep "¶$bashmarks_name$" $bashmarks_file` ]; then
-                if [ -z `grep "¶$bashmarks_name$" $bashmarks_command_file` ]; then
-                    echo $bashmarks >> $bashmarks_file
+            if [ -z `awk '/╩/{found=1} {if(!found) print}' $bashmarks_file | grep "¶$bashmarks_name$"` ]; then
+                if [ -z `awk '{if(found) print} /╩/{found=1}' $bashmarks_file | grep "¶$bashmarks_name$"` ]; then
+                    awk -v bm=$bashmarks '$1 == "╩" && !found {print bm; found=1}; {print}' $bashmarks_file > $bashmarks_file_tmp && mv $bashmarks_file_tmp $bashmarks_file
                     echo "Bashmark '$bashmarks_name' saved"
                 else
                     echo "Bashmark '$bashmarks_name' already exists as a command"
@@ -147,26 +145,26 @@ bs() {
 # BashShowDirectory - Show the directory marks
 bsd() {
     echo "BashMarks:"
-    cat $bashmarks_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
+    awk '/╩/{found=1} {if(!found) print}' $bashmarks_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
 }
 
 # BashShowCommand - Show the command marks
 bsc() {
     echo "BashMarks Commands:"
-    cat $bashmarks_command_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
+    awk '{if(found) print} /╩/{found=1}' $bashmarks_file | awk '{ printf "\n%s\n%s\n",$2,$1}' FS=¶
 }
 
 # BashShowMark - Show the mark
 bsm() {
     bashmarks_name=$1
 
-    bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_file"`
+    bashmarks=`awk '/╩/{found=1} {if(!found) print}' $bashmarks_file | grep "¶$bashmarks_name$"`
 
     if [ -n "$bashmarks" ]; then
         dir=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
         echo "$dir"
     else
-        bashmarksCommand=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
+        bashmarksCommand=`awk '{if(found) print} /╩/{found=1}' $bashmarks_file | grep "¶$bashmarks_name$"`
         if [ -n "$bashmarksCommand" ]; then
             command=`echo "$bashmarksCommand" | awk '{printf "%s",$1}' FS=¶`
             echo "$command"
@@ -180,13 +178,13 @@ bsm() {
 be() {
     bashmarks_name=$1
 
-    bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_file"`
+    bashmarks=`awk '/╩/{found=1} {if(!found) print}' $bashmarks_file | grep "¶$bashmarks_name$"`
 
     if [ -n "$bashmarks" ]; then
         dir=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
         cd "$dir"
     else
-        bashmarks=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
+        bashmarks=`awk '{if(found) print} /╩/{found=1}' $bashmarks_file | grep "¶$bashmarks_name$"`
         if [ -n "$bashmarks" ]; then
             command=`echo "$bashmarks" | awk '{printf "%s",$1}' FS=¶`
             $command
@@ -201,39 +199,23 @@ bd() {
     bashmarks_name=$1
 
     if [ -n "$bashmarks_name" ]; then
-
         bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_file"`
-        if [ -z "$bashmarks_check" ]; then
-            bashmarks_check=`grep "¶$bashmarks_name$" "$bashmarks_command_file"`
-            if [ -n "$bashmarks_check" ]; then
-                bashmarks=`grep -v "¶$bashmarks_name$" "$bashmarks_command_file" | awk '{printf "%s¶%s╩",$1,$2}' FS=¶`
-                if [ -n "$bashmarks" ]; then
-                    rm $bashmarks_command_file
-                    echo $bashmarks | tr '╩' '\n' | awk 'NF > 0' >> $bashmarks_command_file
-                    echo "Bashmark '$bashmarks_name' deleted"
-                else
-                    # if we only have one command and we're deleting it, grep -v returns nothing
-                    # instead just remove the file an touch it clean
-                    rm $bashmarks_command_file
-                    touch $bashmarks_command_file
-                    echo "Bashmark '$bashmarks_name' deleted"
-                fi
-            else
-                echo "Can not find: '$bashmarks_name'"
-            fi
-        else
-            bashmarks=`grep -v "¶$bashmarks_name$" "$bashmarks_file" | awk '{printf "%s¶%s╩",$1,$2}' FS=¶`
+        if [ -n "$bashmarks_check" ]; then
+            bashmarks=`grep -v "¶$bashmarks_name$" "$bashmarks_file" | awk '{printf "%s¶%s╦",$1,$2}' FS=¶ | awk '{ sub(/╦╩¶╦/, "╦╩╦"); print }'`
             if [ -n "$bashmarks" ]; then
                 rm $bashmarks_file
-                echo $bashmarks | tr '╩' '\n' | awk 'NF > 0' >> $bashmarks_file
+                echo $bashmarks | tr '╦' '\n' | awk 'NF > 0' >> $bashmarks_file
                 echo "Bashmark '$bashmarks_name' deleted"
             else
                 # if we only have one mark and we're deleting it, grep -v returns nothing
                 # instead just remove the file an touch it clean
                 rm $bashmarks_file
                 touch $bashmarks_file
+                echo ╩ > $bashmarks_file
                 echo "Bashmark '$bashmarks_name' deleted"
             fi
+        else
+            echo "Can not find: '$bashmarks_name'"
         fi
     else
         echo "Invalid name: '$bashmarks_name'"
@@ -243,6 +225,6 @@ bd() {
 
 # TabComplete - List all marks, grep for match
 _tabCompleteBashMarks(){
-    cat $bashmarks_file $bashmarks_command_file | awk '{printf "%s\n",$2}' FS=¶ | grep "$2.*"
+    cat $bashmarks_file | awk '{printf "%s\n",$2}' FS=¶ | grep "$2.*"
 }
 complete -C _tabCompleteBashMarks -o default be bsm
