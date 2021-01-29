@@ -121,7 +121,7 @@ bm() {
             bashmarks="`pwd`¶$bashmarks_name" # Store the mark as folder¶name
             if [ -z `awk '/╩/{found=1} {if(!found) print}' $bashmarks_file | grep "¶$bashmarks_name$"` ]; then
                 if [ -z `awk '{if(found) print} /╩/{found=1}' $bashmarks_file | grep "¶$bashmarks_name$"` ]; then
-                    awk -v bm=$bashmarks '$1 == "╩" && !found {print bm; found=1}; {print}' $bashmarks_file > $bashmarks_file_tmp && mv $bashmarks_file_tmp $bashmarks_file
+                    awk -v bm=$bashmarks '/╩/ && !found {found = 1; print bm;}; {print}' $bashmarks_file > $bashmarks_file_tmp && mv $bashmarks_file_tmp $bashmarks_file
                     echo "Bashmark '$bashmarks_name' saved"
                 else
                     echo "Bashmark '$bashmarks_name' already exists as a command"
